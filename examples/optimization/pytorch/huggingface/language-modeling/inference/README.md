@@ -9,8 +9,9 @@ We now support two models, and we are adding more models and more advanced techn
 - BLOOM-176B
   script `run_bloom.py` is adapted from [HuggingFace/transformers-bloom-inference](https://github.com/huggingface/transformers-bloom-inference/blob/main/bloom-inference-scripts/bloom-accelerate-inference.py). 
 
-# Prerequisite
-## Create Environment (conda)
+# Performance Benchmark
+## Single Node
+### Create Environment (conda)
 ```
 conda install mkl mkl-include -y
 conda install jemalloc -c conda-forge -y
@@ -23,7 +24,7 @@ cd intel-extension-for-pytorch
 python setup.py install
 cd ..
 ```
-## Setup Environment Variables
+### Setup Environment Variables
 ```
 export KMP_BLOCKTIME=1
 export KMP_SETTINGS=1
@@ -32,34 +33,28 @@ export KMP_AFFINITY=granularity=fine,compact,1,0
 export OMP_NUM_THREADS=< Cores number to use >
 export LD_PRELOAD=${LD_PRELOAD}:${CONDA_PREFIX}/lib/libiomp5.so
 ```
+By default searcher is set to beam searcher with num_beams = 4, if you'd like to use greedy search for comparison, add "--greedy" in args.
 
-# Performance Benchmark
-## GPT-J
-### Single Node
+### GPT-J
 ```bash
 # use jemalloc
 export LD_PRELOAD=${LD_PRELOAD}:${CONDA_PREFIX}/lib/libjemalloc.so
 export MALLOC_CONF="oversize_threshold:1,background_thread:true,metadata_thp:auto,dirty_decay_ms:9000000000,muzzy_decay_ms:9000000000"
 
-# default is beam search with num_beams=4, if you need to use greedy search for comparison, add "--greedy" in args.
 numactl -m <node N> -C <cpu list> \
     python run_gptj.py \
         --precision <fp32/bf16> \
         --max-new-tokens 32
 ```
-### Multiple Nodes
-```
-```
-## BLOOM-176B
-By default searcher is set to beam searcher with num_beams = 4, if you'd like to use greedy search for comparison, add "--greedy" in args.
-### Single Node
+### BLOOM-176B
 We don't enable jemalloc here since BLOOM-176B requires lots of memory and will have memory contention w/ jemalloc.
-
 ```bash
 numactl -m <node N> -C <cpu list> python3 run_bloom.py --batch_size 1 --benchmark
 ```
+
 ### Multiple Nodes
 ```
+WIP
 ```
 
 
