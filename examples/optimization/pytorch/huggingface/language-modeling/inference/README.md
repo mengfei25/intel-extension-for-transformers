@@ -34,7 +34,7 @@ export OMP_NUM_THREADS=< Cores number to use >
 export LD_PRELOAD=${LD_PRELOAD}:${CONDA_PREFIX}/lib/libiomp5.so
 ```
 
-**Note**: By default searcher is set to beam searcher with num_beams = 4, if you'd like to use greedy search for comparison, add "--greedy" in args.
+**Note**: The default search algorithm is beam search with num_beams = 4, if you'd like to use greedy search for comparison, add "--greedy" in args.
 
 ### Run GPT-J
 Jemalloc is a recommended malloc implementation that emphasizes fragmentation avoidance and scalable concurrency support
