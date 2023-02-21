@@ -94,3 +94,6 @@
 [submodule "intel_extension_for_transformers/backends/neural_engine/third_party/cereal"]
 	path = intel_extension_for_transformers/backends/neural_engine/third_party/cereal
 	url = https://github.com/USCiLab/cereal
+[submodule "examples/optimization/pytorch/huggingface/language-modeling/inference/intel-extension-for-pytorch"]
+	path = examples/optimization/pytorch/huggingface/language-modeling/inference/intel-extension-for-pytorch
+	url = https://github.com/intel/intel-extension-for-pytorch.git

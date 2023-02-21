@@ -1,4 +1,4 @@
-Step-by-Step
+Inference
 ============
 This document describes the step-by-step instructions to run large language models(LLMs) on 4th Gen Intel® Xeon® Scalable Processor (codenamed [Sapphire Rapids](https://www.intel.com/content/www/us/en/products/docs/processors/xeon-accelerated/4th-gen-xeon-scalable-processors.html)) with PyTorch and [Intel® Extension for PyTorch](https://github.com/intel/intel-extension-for-pytorch).
 
@@ -10,29 +10,32 @@ We now support two models, and we are adding more models and more advanced techn
   script `run_bloom.py` is adapted from [HuggingFace/transformers-bloom-inference](https://github.com/huggingface/transformers-bloom-inference/blob/main/bloom-inference-scripts/bloom-accelerate-inference.py). 
 
 # Prerequisite
-## Create Environment
+## Create Environment (conda)
 ```
 conda install mkl mkl-include -y
-conda install jemalloc gperftools -c conda-forge -y
-pip install torch==1.13.1 --extra-index-url https://download.pytorch.org/whl/cpu
-pip install intel_extension_for_pytorch==1.13.0
+conda install jemalloc -c conda-forge -y
 pip install -r requirements.txt
+# install pytorch
+pip install torch==1.13.1 --extra-index-url https://download.pytorch.org/whl/cpu
+# install intel-extension-for-pytorch
+git submodule update --init --recursive
+cd intel-extension-for-pytorch
+python setup.py install
+cd ..
 ```
 ## Setup Environment Variables
 ```
 export KMP_BLOCKTIME=1
 export KMP_SETTINGS=1
 export KMP_AFFINITY=granularity=fine,compact,1,0
-
 # IOMP
 export OMP_NUM_THREADS=< Cores number to use >
 export LD_PRELOAD=${LD_PRELOAD}:${CONDA_PREFIX}/lib/libiomp5.so
 ```
 
 # Performance Benchmark
-
 ## GPT-J
-### Performance
+### Single Node
 ```bash
 # use jemalloc
 export LD_PRELOAD=${LD_PRELOAD}:${CONDA_PREFIX}/lib/libjemalloc.so
@@ -44,15 +47,20 @@ numactl -m <node N> -C <cpu list> \
         --precision <fp32/bf16> \
         --max-new-tokens 32
 ```
+### Multiple Nodes
+```
+```
 ## BLOOM-176B
-### Performance
+By default searcher is set to beam searcher with num_beams = 4, if you'd like to use greedy search for comparison, add "--greedy" in args.
+### Single Node
 We don't enable jemalloc here since BLOOM-176B requires lots of memory and will have memory contention w/ jemalloc.
 
 ```bash
 numactl -m <node N> -C <cpu list> python3 run_bloom.py --batch_size 1 --benchmark
 ```
-By default searcher is set to beam searcher with num_beams = 4, if you'd like to use greedy search for comparison, add "--greedy" in args.
-
+### Multiple Nodes
+```
+```
 
 
   >**Note**: Inference performance speedup with Intel DL Boost (VNNI/AMX) on Intel(R) Xeon(R) hardware, Please refer to [Performance Tuning Guide](https://intel.github.io/intel-extension-for-pytorch/cpu/latest/tutorials/performance_tuning/tuning_guide.html) for more optimizations.
