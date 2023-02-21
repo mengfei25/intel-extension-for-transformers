@@ -10,8 +10,9 @@ We now support two models, and we are adding more models and more advanced techn
 - BLOOM-176B
   script `run_bloom.py` is adapted from [HuggingFace/transformers-bloom-inference](https://github.com/huggingface/transformers-bloom-inference/blob/main/bloom-inference-scripts/bloom-accelerate-inference.py). 
 
-## Single Node
-### Create Environment (conda)
+## Performance
+### Single Node
+#### Create Environment (conda)
 ```
 conda install mkl mkl-include -y
 conda install jemalloc -c conda-forge -y
@@ -24,7 +25,7 @@ cd intel-extension-for-pytorch
 python setup.py install
 cd ..
 ```
-### Setup Environment Variables
+#### Setup Environment Variables
 ```
 export KMP_BLOCKTIME=1
 export KMP_SETTINGS=1
@@ -36,7 +37,7 @@ export LD_PRELOAD=${LD_PRELOAD}:${CONDA_PREFIX}/lib/libiomp5.so
 
 **Note**: The default search algorithm is beam search with num_beams = 4, if you'd like to use greedy search for comparison, add "--greedy" in args.
 
-### Run GPT-J
+#### Run GPT-J
 Jemalloc is a recommended malloc implementation that emphasizes fragmentation avoidance and scalable concurrency support
 ```bash
 export LD_PRELOAD=${LD_PRELOAD}:${CONDA_PREFIX}/lib/libjemalloc.so
@@ -47,13 +48,18 @@ numactl -m <node N> -C <cpu list> \
         --precision <fp32/bf16> \
         --max-new-tokens 32
 ```
-### Run BLOOM-176B
+#### Run BLOOM-176B
 We don't enable jemalloc here since BLOOM-176B requires lots of memory and will have memory contention w/ jemalloc.
 ```bash
 numactl -m <node N> -C <cpu list> python3 run_bloom.py --batch_size 1 --benchmark
 ```
 
-## Multiple Nodes
+### Multiple Nodes
+```
+WIP
+```
+
+## Accuracy
 ```
 WIP
 ```
