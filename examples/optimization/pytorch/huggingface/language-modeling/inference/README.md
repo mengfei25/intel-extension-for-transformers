@@ -33,11 +33,12 @@ export KMP_AFFINITY=granularity=fine,compact,1,0
 export OMP_NUM_THREADS=< Cores number to use >
 export LD_PRELOAD=${LD_PRELOAD}:${CONDA_PREFIX}/lib/libiomp5.so
 ```
+
 By default searcher is set to beam searcher with num_beams = 4, if you'd like to use greedy search for comparison, add "--greedy" in args.
 
 ### Run GPT-J
+Jemalloc is a recommended malloc implementation that emphasizes fragmentation avoidance and scalable concurrency support
 ```bash
-# use jemalloc
 export LD_PRELOAD=${LD_PRELOAD}:${CONDA_PREFIX}/lib/libjemalloc.so
 export MALLOC_CONF="oversize_threshold:1,background_thread:true,metadata_thp:auto,dirty_decay_ms:9000000000,muzzy_decay_ms:9000000000"
 
