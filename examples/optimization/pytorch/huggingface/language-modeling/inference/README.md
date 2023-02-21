@@ -1,5 +1,6 @@
-Inference
-============
+# LLMs Inference
+
+## Introduction
 This document describes the step-by-step instructions to run large language models(LLMs) on 4th Gen Intel® Xeon® Scalable Processor (codenamed [Sapphire Rapids](https://www.intel.com/content/www/us/en/products/docs/processors/xeon-accelerated/4th-gen-xeon-scalable-processors.html)) with PyTorch and [Intel® Extension for PyTorch](https://github.com/intel/intel-extension-for-pytorch).
 
 We now support two models, and we are adding more models and more advanced techniques(distributed inference, model compressions etc.) to better unleash LLM inference on Intel platforms.
@@ -9,7 +10,6 @@ We now support two models, and we are adding more models and more advanced techn
 - BLOOM-176B
   script `run_bloom.py` is adapted from [HuggingFace/transformers-bloom-inference](https://github.com/huggingface/transformers-bloom-inference/blob/main/bloom-inference-scripts/bloom-accelerate-inference.py). 
 
-# Performance Benchmark
 ## Single Node
 ### Create Environment (conda)
 ```
@@ -35,7 +35,7 @@ export LD_PRELOAD=${LD_PRELOAD}:${CONDA_PREFIX}/lib/libiomp5.so
 ```
 By default searcher is set to beam searcher with num_beams = 4, if you'd like to use greedy search for comparison, add "--greedy" in args.
 
-### GPT-J
+### Run GPT-J
 ```bash
 # use jemalloc
 export LD_PRELOAD=${LD_PRELOAD}:${CONDA_PREFIX}/lib/libjemalloc.so
@@ -46,13 +46,13 @@ numactl -m <node N> -C <cpu list> \
         --precision <fp32/bf16> \
         --max-new-tokens 32
 ```
-### BLOOM-176B
+### Run BLOOM-176B
 We don't enable jemalloc here since BLOOM-176B requires lots of memory and will have memory contention w/ jemalloc.
 ```bash
 numactl -m <node N> -C <cpu list> python3 run_bloom.py --batch_size 1 --benchmark
 ```
 
-### Multiple Nodes
+## Multiple Nodes
 ```
 WIP
 ```
