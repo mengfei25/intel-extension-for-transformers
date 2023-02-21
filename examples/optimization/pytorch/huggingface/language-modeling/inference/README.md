@@ -1,14 +1,14 @@
 # LLMs Inference
-  - [Introduction] (#introduction)
-  - [Models] (#model)
-    - [GPT-J] (#gpt-j)
-      - [Setup] (#setup)
-      - [Performance] (#performance)
-      - [Accuracy] (#accuracy)
-    - [Bloom-176B] (#bloom-176b)
-      - [Setup] (#setup)
-      - [Performance] (#performance)
-      - [Accuracy] (#accuracy)
+  - [Introduction](#introduction)
+  - [Models](#models)
+    - [GPT-J](#gpt-j)
+      - [Setup](#setup)
+      - [Performance](#performance)
+      - [Accuracy](#accuracy)
+    - [Bloom-176B](#bloom-176b)
+      - [Setup](#setup-1)
+      - [Performance](#performance-1)
+      - [Accuracy](#accuracy-1)
 
 ## Introduction
 This document describes the step-by-step instructions to run large language models(LLMs) on 4th Gen Intel® Xeon® Scalable Processor (codenamed [Sapphire Rapids](https://www.intel.com/content/www/us/en/products/docs/processors/xeon-accelerated/4th-gen-xeon-scalable-processors.html)) with PyTorch and [Intel® Extension for PyTorch](https://github.com/intel/intel-extension-for-pytorch).
