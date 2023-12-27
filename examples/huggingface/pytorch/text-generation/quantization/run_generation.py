@@ -21,6 +21,7 @@ from intel_extension_for_transformers.transformers import (
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--model", default=None)
+parser.add_argument("--bf16", action="store_true")
 parser.add_argument(
     "--dataset", nargs="?", default="NeelNanda/pile-10k", const="NeelNanda/pile-10k"
 )
@@ -55,7 +56,7 @@ parser.add_argument(
 parser.add_argument(
     "--tasks",
     nargs="+",
-    default=["lambada_openai"],
+    default=["lambada_openai", "hellaswag","winogrande","piqa","hendrycksTest-abstract_algebra","hendrycksTest-anatomy","hendrycksTest-astronomy","hendrycksTest-business_ethics","hendrycksTest-clinical_knowledge","hendrycksTest-college_biology","hendrycksTest-college_chemistry","hendrycksTest-college_computer_science","hendrycksTest-college_mathematics","hendrycksTest-college_medicine","hendrycksTest-college_physics","hendrycksTest-computer_security","hendrycksTest-conceptual_physics","hendrycksTest-econometrics","hendrycksTest-electrical_engineering","hendrycksTest-elementary_mathematics","hendrycksTest-formal_logic","hendrycksTest-global_facts","hendrycksTest-high_school_biology","hendrycksTest-high_school_chemistry","hendrycksTest-high_school_computer_science","hendrycksTest-high_school_european_history","hendrycksTest-high_school_geography","hendrycksTest-high_school_government_and_politics","hendrycksTest-high_school_macroeconomics","hendrycksTest-high_school_mathematics","hendrycksTest-high_school_microeconomics","hendrycksTest-high_school_physics","hendrycksTest-high_school_psychology","hendrycksTest-high_school_statistics","hendrycksTest-high_school_us_history","hendrycksTest-high_school_world_history","hendrycksTest-human_aging","hendrycksTest-human_sexuality","hendrycksTest-international_law","hendrycksTest-jurisprudence","hendrycksTest-logical_fallacies","hendrycksTest-machine_learning","hendrycksTest-management","hendrycksTest-marketing","hendrycksTest-medical_genetics","hendrycksTest-miscellaneous","hendrycksTest-moral_disputes","hendrycksTest-moral_scenarios","hendrycksTest-nutrition","hendrycksTest-philosophy","hendrycksTest-prehistory","hendrycksTest-professional_accounting","hendrycksTest-professional_law","hendrycksTest-professional_medicine","hendrycksTest-professional_psychology","hendrycksTest-public_relations","hendrycksTest-security_studies","hendrycksTest-sociology","hendrycksTest-us_foreign_policy","hendrycksTest-virology","hendrycksTest-world_religions","truthfulqa_mc","arc_challenge","wikitext"],
     type=str,
     help="tasks list for accuracy validation",
 )
@@ -152,6 +153,7 @@ config = AutoConfig.from_pretrained(
         args.sq
         or args.woq_algo in ["AWQ", "TEQ"]
         or (args.int8 or args.int8_bf16_mixed)
+        or args.bf16
     )
     else False,  # torchscript will force `return_dict=False` to avoid jit errors
     use_cache=True,  # to use kv cache.
@@ -382,34 +384,37 @@ if args.accuracy:
         peft_config.base_model_name_or_path if args.peft_model_id else args.model
     )
     from intel_extension_for_transformers.llm.evaluation.lm_eval import evaluate
+    if args.bf16:
+        try:
+            import intel_extension_for_pytorch as ipex
+            user_model = ipex.optimize_transformers(user_model.eval(), dtype=torch.bfloat16, inplace=True, deployment_mode=True)
+        except:
+            from intel_extension_for_transformers.transformers.utils.utility import get_example_inputs
+            from intel_extension_for_transformers.llm.evaluation.models import TSModelCausalLMForITREX
+            example_inputs = get_example_inputs(user_model.config, tokenizer=tokenizer)
+            with torch.no_grad(), torch.cpu.amp.autocast():
+                user_model = torch.jit.trace(user_model, example_kwarg_inputs=example_inputs, check_trace=False, strict=False)
+                user_model = torch.jit.trace(user_model.eval())
+            user_model = TSModelCausalLMForITREX(user_model, config)
 
-    results = evaluate(
-        model="hf-causal",
-        model_args="pretrained="
-        + args.model
-        + ",tokenizer="
-        + args.model
-        + ",dtype=float32"
-        + ",_commit_hash="
-        + args._commit_hash
-        + ",trust_remote_code="
-        + str(args.trust_remote_code),
-        user_model=user_model,
-        batch_size=args.batch_size,
-        tasks=args.tasks,
-    )
+    with torch.autocast('cpu', enabled=args.bf16, dtype=torch.bfloat16 if args.bf16 else None):
+        results = evaluate(
+            model="hf-causal",
+            model_args="pretrained="
+            + args.model
+            + ",tokenizer="
+            + args.model
+            + ",dtype=float32"
+            + ",_commit_hash="
+            + args._commit_hash
+            + ",trust_remote_code="
+            + str(args.trust_remote_code),
+            user_model=user_model,
+            batch_size=args.batch_size,
+            tasks=args.tasks,
+        )
     dumped = json.dumps(results, indent=2)
     if args.save_accuracy_path:
         with open(args.save_accuracy_path, "w") as f:
             f.write(dumped)
-    for task_name in args.tasks:
-        if task_name == "wikitext":
-            print(
-                "Accuracy for %s is: %s"
-                % (task_name, results["results"][task_name]["word_perplexity"])
-            )
-        else:
-            print(
-                "Accuracy for %s is: %s"
-                % (task_name, results["results"][task_name]["acc"])
-            )
+
