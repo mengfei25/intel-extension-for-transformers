@@ -411,7 +411,7 @@ if args.accuracy:
             + str(args.trust_remote_code),
             user_model=user_model,
             batch_size=args.batch_size,
-            tasks=args.tasks,
+            tasks=args.tasks if config.model_type not in ["qwen"] else args.tasks.remove("wikitext"),
         )
     dumped = json.dumps(results, indent=2)
     if args.save_accuracy_path:
