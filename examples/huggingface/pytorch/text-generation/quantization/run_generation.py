@@ -396,7 +396,9 @@ if args.accuracy:
                 user_model = torch.jit.trace(user_model, example_kwarg_inputs=example_inputs, check_trace=False, strict=False)
                 user_model = torch.jit.trace(user_model.eval())
             user_model = TSModelCausalLMForITREX(user_model, config)
-
+    # remove wikitext
+    if config.model_type in ["qwen"]:
+        args.tasks.remove("wikitext")
     with torch.autocast('cpu', enabled=args.bf16, dtype=torch.bfloat16 if args.bf16 else None):
         results = evaluate(
             model="hf-causal",
@@ -411,7 +413,7 @@ if args.accuracy:
             + str(args.trust_remote_code),
             user_model=user_model,
             batch_size=args.batch_size,
-            tasks=args.tasks if config.model_type not in ["qwen"] else args.tasks.remove("wikitext"),
+            tasks=args.tasks,
         )
     dumped = json.dumps(results, indent=2)
     if args.save_accuracy_path:
