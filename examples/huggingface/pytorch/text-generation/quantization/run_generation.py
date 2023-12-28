@@ -397,7 +397,7 @@ if args.accuracy:
                 user_model = torch.jit.trace(user_model.eval())
             user_model = TSModelCausalLMForITREX(user_model, config)
     # remove wikitext
-    if config.model_type in ["qwen"]:
+    if config.model_type in ["qwen"] and "wikitext" in args.tasks:
         args.tasks.remove("wikitext")
     with torch.autocast('cpu', enabled=args.bf16, dtype=torch.bfloat16 if args.bf16 else None):
         results = evaluate(
